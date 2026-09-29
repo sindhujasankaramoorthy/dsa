@@ -1,0 +1,15 @@
+.git
+.gitignore
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+env/
+.idea/
+.vscode/
+tests/
+repo_fruit/.git
+repo_veg/.git

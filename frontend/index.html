@@ -1,0 +1,2275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreshGrade AI — Computer Vision Produce Quality Inspection</title>
+  <meta name="description"
+    content="AI produce quality grading from smartphone images measuring colour, size, surface defects, and apparent maturity.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-primary: #030712;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.9);
+      --accent-green: #10b981;
+      --accent-green-glow: rgba(16, 185, 129, 0.4);
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-red-glow: rgba(239, 68, 68, 0.4);
+      --accent-blue: #38bdf8;
+      --accent-purple: #8b5cf6;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border-color: rgba(255, 255, 255, 0.12);
+      --radius-lg: 20px;
+      --radius-md: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% -10%, #1e293b 0%, #0f172a 50%, #030712 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    .brand-font {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .app-container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    /* Header & Brand */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: white;
+    }
+
+    .brand-icon {
+      background: linear-gradient(135deg, #10b981, #0284c7);
+      padding: 0.7rem;
+      border-radius: 14px;
+      font-size: 1.6rem;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    .brand-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #34d399, #38bdf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-tagline {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* Nav bar */
+    nav {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.35rem;
+      border-radius: 35px;
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.55rem 1.1rem;
+      border-radius: 25px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .nav-btn.active,
+    .nav-btn:hover {
+      color: white;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(56, 189, 248, 0.25));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+
+    /* Key Input & Mode Toggle */
+    .key-input-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 0.4rem 0.85rem;
+      border-radius: 25px;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+      transition: border-color 0.2s;
+    }
+
+    .key-input-box:focus-within {
+      border-color: #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
+    }
+
+    .demo-toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--accent-green-glow);
+      padding: 0.4rem 0.85rem;
+      border-radius: 25px;
+    }
+
+    .mode-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+    }
+
+    .mode-badge.live {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .mode-badge.demo {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: black;
+    }
+
+    /* Tabs */
+    .tab-content {
+      display: none;
+      margin-top: 1.75rem;
+      animation: slideUp 0.35s ease-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 4rem 1rem;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.4rem 1.2rem;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero h1 {
+      font-size: 3.2rem;
+      margin-bottom: 1.2rem;
+      line-height: 1.15;
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      margin-bottom: 2.2rem;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      padding: 1rem 2.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 35px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+      transition: all 0.25s ease;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 0 35px rgba(16, 185, 129, 0.6);
+    }
+
+    /* Cards & Layout */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 1.8rem;
+      border-radius: var(--radius-lg);
+      text-align: left;
+      backdrop-filter: blur(16px);
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      background: var(--bg-card-hover);
+    }
+
+    .feature-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .inspect-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.75rem;
+    }
+
+    @media(max-width: 900px) {
+      .inspect-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.8rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Dropzone */
+    .dropzone {
+      border: 2px dashed rgba(56, 189, 248, 0.3);
+      border-radius: var(--radius-md);
+      padding: 2.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.5);
+      transition: all 0.25s ease;
+    }
+
+    .dropzone:hover {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+    }
+
+    .dropzone img {
+      max-width: 100%;
+      max-height: 270px;
+      border-radius: 12px;
+      margin-top: 1rem;
+      display: none;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Inputs */
+    .select-input,
+    .text-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-color);
+      color: white;
+      padding: 0.85rem 1.2rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .select-input:focus,
+    .text-input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+    }
+
+    .select-input option {
+      background: #0f172a;
+      color: white;
+    }
+
+    /* PROMINENT BINARY FRESH / NOT FRESH BADGES */
+    .status-badge {
+      display: inline-block;
+      padding: 0.65rem 1.8rem;
+      border-radius: 40px;
+      font-weight: 800;
+      font-size: 1.45rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .status-badge.fresh {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 2px solid #10b981;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+      animation: pulseGreen 2.5s infinite;
+    }
+
+    .status-badge.not-fresh {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 2px solid #ef4444;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+      animation: pulseRed 2.5s infinite;
+    }
+
+    @keyframes pulseGreen {
+
+      0%,
+      100% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 35px rgba(16, 185, 129, 0.7);
+      }
+    }
+
+    @keyframes pulseRed {
+
+      0%,
+      100% {
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 35px rgba(239, 68, 68, 0.7);
+      }
+    }
+
+    /* Meter & Progress Bars */
+    .score-meter {
+      font-size: 3.4rem;
+      font-weight: 800;
+      line-height: 1;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .factor-bar {
+      background: rgba(255, 255, 255, 0.08);
+      height: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 0.35rem;
+      margin-bottom: 1rem;
+    }
+
+    .factor-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #38bdf8, #8b5cf6);
+      border-radius: 6px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Boxes */
+    .evidence-box {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 1.2rem;
+      border-radius: var(--radius-md);
+      margin-top: 1.25rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .recommendation-box {
+      background: rgba(56, 189, 248, 0.1);
+      border-left: 4px solid var(--accent-blue);
+      padding: 1.2rem;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin-top: 1.25rem;
+      font-size: 0.94rem;
+    }
+
+    .quality-warning {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fca5a5;
+      padding: 1.2rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    /* Samples & Badges */
+    .demo-samples {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+
+    .sample-chip {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border-color);
+      padding: 0.45rem 0.95rem;
+      border-radius: 25px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    /* Complete Ultra-Clean High-Contrast Light Theme Overrides */
+    body.light-theme {
+      background: radial-gradient(circle at 50% -10%, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+      color: #0f172a !important;
+      --text-muted: #475569 !important;
+    }
+
+    body.light-theme .card,
+    body.light-theme .feature-card,
+    body.light-theme .metric-card {
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+      color: #0f172a !important;
+    }
+
+    body.light-theme div:not(.status-badge):not(.mode-badge):not(.cta-btn),
+    body.light-theme a:not(.cta-btn),
+    body.light-theme h1:not(.brand-title),
+    body.light-theme h2,
+    body.light-theme h3,
+    body.light-theme h4,
+    body.light-theme p,
+    body.light-theme span:not(.status-badge):not(.mode-badge),
+    body.light-theme label,
+    body.light-theme li,
+    body.light-theme td,
+    body.light-theme th,
+    body.light-theme b,
+    body.light-theme strong,
+    body.light-theme small {
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+    }
+
+    body.light-theme .hero h1 {
+      background: none !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+    }
+
+    body.light-theme .hero p {
+      color: #475569 !important;
+      -webkit-text-fill-color: #475569 !important;
+    }
+
+    body.light-theme .hero-badge {
+      background: rgba(16, 185, 129, 0.15) !important;
+      border-color: #10b981 !important;
+      color: #047857 !important;
+      -webkit-text-fill-color: #047857 !important;
+    }
+
+    body.light-theme .brand-title {
+      background: linear-gradient(135deg, #047857, #0284c7) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+
+    body.light-theme nav {
+      background: rgba(0, 0, 0, 0.06) !important;
+      border-color: #cbd5e1 !important;
+    }
+
+    body.light-theme .nav-btn {
+      color: #334155 !important;
+      -webkit-text-fill-color: #334155 !important;
+    }
+
+    body.light-theme .nav-btn.active,
+    body.light-theme .nav-btn:hover {
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+      background: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    body.light-theme .select-input,
+    body.light-theme .text-input {
+      background: #ffffff !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+      border: 1px solid #94a3b8 !important;
+    }
+
+    body.light-theme .select-input option {
+      background: #ffffff !important;
+      color: #0f172a !important;
+    }
+
+    body.light-theme .dropzone {
+      background: #f1f5f9 !important;
+      border-color: #94a3b8 !important;
+      color: #0f172a !important;
+    }
+
+    body.light-theme .dropzone:hover {
+      background: #e2e8f0 !important;
+      border-color: #0284c7 !important;
+    }
+
+    body.light-theme .sample-chip {
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+      font-weight: 600 !important;
+    }
+
+    body.light-theme .sample-chip:hover {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
+
+    body.light-theme .evidence-box {
+      background: rgba(16, 185, 129, 0.14) !important;
+      border: 1px solid #10b981 !important;
+      color: #064e3b !important;
+    }
+
+    body.light-theme .evidence-box div,
+    body.light-theme .evidence-box span {
+      color: #064e3b !important;
+      -webkit-text-fill-color: #064e3b !important;
+    }
+
+    body.light-theme .recommendation-box {
+      background: rgba(2, 132, 199, 0.14) !important;
+      border-left: 4px solid #0284c7 !important;
+      color: #0c4a6e !important;
+    }
+
+    body.light-theme .recommendation-box div,
+    body.light-theme .recommendation-box span {
+      color: #0c4a6e !important;
+      -webkit-text-fill-color: #0c4a6e !important;
+    }
+
+    body.light-theme #gemini-api-key-input {
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+    }
+
+    body.light-theme #gemini-api-key-input::placeholder {
+      color: #64748b !important;
+      -webkit-text-fill-color: #64748b !important;
+    }
+
+    body.light-theme .metric-val {
+      color: #0284c7 !important;
+      -webkit-text-fill-color: #0284c7 !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header>
+      <a href="#" class="brand" onclick="showTab('landing')">
+        <div class="brand-icon">🥦🍎</div>
+        <div>
+          <div class="brand-title">FreshGrade AI</div>
+          <div class="brand-tagline">Produce Quality Grading Engine from Smartphone Images</div>
+        </div>
+      </a>
+
+      <nav>
+        <button class="nav-btn" id="btn-farmer" onclick="showTab('farmer')" style="border: 1px solid #10b981; color: #34d399; font-weight: 700;">🌾 Farmer Assistant / விவசாயி உதவி</button>
+        <button class="nav-btn" id="btn-industry-guide" onclick="showTab('industry-guide'); loadIndustryGuide();" style="border: 1px solid #f59e0b; color: #fbbf24; font-weight: 700;">🏬 Grade-to-Industry Guide / எங்கே விற்கலாம்?</button>
+        <button class="nav-btn active" id="btn-landing" onclick="showTab('landing')">Home</button>
+        <button class="nav-btn" id="btn-inspect" onclick="showTab('inspect')">New Inspection</button>
+        <button class="nav-btn" id="btn-batch" onclick="showTab('batch')">Batch Inspection</button>
+        <button class="nav-btn" id="btn-dashboard" onclick="showTab('dashboard'); loadDashboard();">B2B Dashboard</button>
+        <button class="nav-btn" id="btn-history" onclick="showTab('history'); loadHistory();">History</button>
+        <button class="nav-btn" id="btn-admin" onclick="showTab('admin'); loadAdmin();">Admin</button>
+      </nav>
+
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <!-- Gemini Key Input -->
+        <div
+          style="display: flex; align-items: center; gap: 0.4rem; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); padding: 0.35rem 0.75rem; border-radius: 25px;">
+          <span style="font-size: 0.8rem; color: #38bdf8; font-weight: 600;">🔑 Gemini Key:</span>
+          <input type="password" id="gemini-api-key-input" placeholder="Paste Gemini Key..."
+            style="background: transparent; border: none; color: white; font-size: 0.8rem; outline: none; width: 130px;"
+            onchange="saveGeminiKey(this.value)">
+        </div>
+
+        <!-- 1. Explicit Mode Toggle Button (LIVE AI vs DEMO) -->
+        <div
+          style="display: flex; align-items: center; gap: 0.4rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.35rem 0.75rem; border-radius: 25px; cursor: pointer;"
+          onclick="toggleDemoMode()">
+          <span style="font-size: 0.8rem; color: #34d399; font-weight: 700;">🔄 Mode:</span>
+          <span id="toggle-mode-btn" class="mode-badge live"
+            style="font-size: 0.75rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 12px; background: #10b981; color: white; text-transform: uppercase;">LIVE
+            AI ⚡</span>
+        </div>
+
+        <!-- 2. Dark / Light Theme Toggle -->
+        <button id="theme-toggle-btn" class="nav-btn"
+          style="background: rgba(255,255,255,0.08); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.82rem;"
+          onclick="toggleTheme()">🌙 Dark Mode</button>
+      </div>
+    </header>
+
+    <!-- Tab 1: Landing Page -->
+    <div id="tab-landing" class="tab-content active">
+      <div class="hero">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🍎 🥦 🍅 🍌</div>
+        <h1>AI Produce Quality Grading from Smartphone Images</h1>
+        <p>Eliminate manual grading variance between individuals. Evaluates 4 visible parameters: Colour, Size, Surface
+          Defects, and Apparent Maturity.</p>
+        <button class="cta-btn" onclick="showTab('inspect')">Start Produce Inspection →</button>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3>1. Colour Vibrancy</h3>
+          <p>Measures HSV color saturation, hue centroid, and color consistency across the produce skin.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📐</div>
+          <h3>2. Size & Scale</h3>
+          <p>Measures produce bounding volume and frame scale occupancy to quantify physical size consistency.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔍</div>
+          <h3>3. Surface Defects</h3>
+          <p>Identifies dark rot decay, discolored patches, lesions, and surface texture irregularities.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌱</div>
+          <h3>4. Apparent Maturity</h3>
+          <p>Evaluates visual ripeness and color warmth shift to ensure consistent maturity classification.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Harvest-to-Market Farmer Decision Assistant -->
+    <div id="tab-farmer" class="tab-content">
+      <!-- Farmer Header Card -->
+      <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(56, 189, 248, 0.15)); border: 2px solid #10b981;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span style="background: var(--accent-green); color: black; font-weight: 800; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 20px; text-transform: uppercase;">🌾 Farmer Decision Assistant</span>
+            <h1 style="font-size: 2.2rem; margin-top: 0.4rem;" id="farmer-hero-title">"What Should I Do With My Harvested Batch Now?"</h1>
+            <p style="color: var(--text-muted); font-size: 1.05rem;" id="farmer-hero-sub">Enter your harvest batch details & visual image to evaluate selling options and get practical next-step guidance.</p>
+          </div>
+
+          <!-- Language Switcher & Read Aloud Button -->
+          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <button class="nav-btn" id="lang-btn-en" style="background: var(--accent-green); color: white; font-weight: 700;" onclick="switchFarmerLanguage('en')">English 🇬🇧</button>
+            <button class="nav-btn" id="lang-btn-ta" style="background: rgba(255,255,255,0.1); color: var(--text-muted); font-weight: 700;" onclick="switchFarmerLanguage('ta')">தமிழ் 🇮🇳</button>
+            <button class="cta-btn" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;" onclick="readAloudFarmerDecision()">🔊 Read Aloud / உரக்கப் படி</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="inspect-grid">
+        <!-- Input Panel for Farmer -->
+        <div class="card">
+          <h2 style="font-size: 1.4rem; margin-bottom: 1.25rem;">1. Enter Harvest Batch Details</h2>
+
+          <!-- Crop Selection Buttons -->
+          <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; display: block;">Select Harvested Crop:</label>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+            <button class="sample-chip farmer-crop-btn active" style="background: #10b981; color: white;" onclick="selectFarmerCrop(this, 'Tomato')">🍅 Tomato (தக்காளி)</button>
+            <button class="sample-chip farmer-crop-btn" onclick="selectFarmerCrop(this, 'Banana')">🍌 Banana (வாழை)</button>
+            <button class="sample-chip farmer-crop-btn" onclick="selectFarmerCrop(this, 'Apple')">🍎 Apple (ஆப்பிள்)</button>
+            <button class="sample-chip farmer-crop-btn" onclick="selectFarmerCrop(this, 'Potato')">🥔 Potato (உருளை)</button>
+            <button class="sample-chip farmer-crop-btn" onclick="selectFarmerCrop(this, 'Onion')">🧅 Onion (வெங்காயம்)</button>
+          </div>
+
+          <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; display: block;">Total Harvest Quantity (kg):</label>
+          <input type="number" id="farmer-total-kg" class="text-input" value="100" placeholder="e.g. 100 kg" style="font-size: 1.1rem; font-weight: 700;">
+
+          <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; display: block;">Current / Expected Buyer Offer Price (₹/kg):</label>
+          <input type="number" id="farmer-buyer-price" class="text-input" value="20" placeholder="e.g. ₹20 per kg" style="font-size: 1.1rem; font-weight: 700;">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-muted); display: block;">Harvest Date:</label>
+              <input type="text" id="farmer-harvest-date" class="text-input" value="Today (இன்று)">
+            </div>
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-muted); display: block;">Location / Mandi:</label>
+              <input type="text" id="farmer-location" class="text-input" value="Krishnagiri, TN">
+            </div>
+          </div>
+
+          <!-- Harvest Image Upload Dropzone -->
+          <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; display: block; margin-top: 0.5rem;">Upload or Capture Harvest Batch Photo:</label>
+          <div class="dropzone" id="farmer-dropzone" onclick="document.getElementById('farmer-file-input').click()">
+            <div id="farmer-dropzone-text">
+              <div style="font-size: 2.5rem;">📸</div>
+              <div style="font-weight: 700; font-size: 1rem; margin-top: 0.4rem;">Tap to Photo Harvest Crate / Batch</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Supports camera photo or uploaded JPG/PNG</div>
+            </div>
+            <img id="farmer-preview-img" alt="Farmer Batch Preview" style="max-height: 200px; display: none;">
+          </div>
+          <input type="file" id="farmer-file-input" accept="image/*" style="display: none;" onchange="handleFarmerFileSelect(event)">
+
+          <button class="cta-btn" style="width: 100%; margin-top: 1.5rem; padding: 1rem; font-size: 1.15rem;" onclick="runFarmerDecision()">
+            🌾 Analyze Quality & Get Selling Guidance →
+          </button>
+        </div>
+
+        <!-- Output Decision Card -->
+        <div class="card">
+          <div id="farmer-placeholder" style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🧺</div>
+            <h3>Harvest Decision Assistant</h3>
+            <p style="font-size: 0.95rem; max-width: 400px; margin: 0 auto;">Upload your batch image and quantity details to get instant recommendations and compare financial selling scenarios.</p>
+          </div>
+
+          <div id="farmer-result-content" style="display: none;">
+            <!-- Prominent Recommended Action Card -->
+            <div style="background: rgba(16, 185, 129, 0.12); border: 2px solid #10b981; padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;" id="farmer-action-card">
+              <div style="font-size: 0.85rem; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 1px;">Recommended Next Action / பரிந்துரைக்கப்பட்ட நடவடிக்கை</div>
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.4rem;">
+                <span id="farmer-action-icon" style="font-size: 2.4rem;">🟢</span>
+                <h1 id="farmer-action-title" style="font-size: 2rem; color: #ffffff; line-height: 1.2;">SELL NOW</h1>
+              </div>
+
+              <!-- "Why?" Simple Reasoning -->
+              <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.75rem;">
+                <h4 style="color: #38bdf8; margin-bottom: 0.4rem;" id="farmer-why-title">Why this recommendation? / ஏன் இந்த பரிந்துரை?</h4>
+                <ul id="farmer-why-list" style="padding-left: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+                  <li>78% of your harvested batch appears visually market-ready (Grade A).</li>
+                  <li>Only 8% shows visible surface damage.</li>
+                </ul>
+              </div>
+
+              <!-- Clear Visual Quality Assessment Disclaimer -->
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 1rem; font-style: italic;" id="farmer-disclaimer">
+                ⚠️ Notice: This recommendation is based strictly on visual AI analysis of surface color, defects, and maturity. It does not determine internal sugar content or chemical residues. Actual market prices may differ.
+              </div>
+            </div>
+
+            <!-- Harvest Quantity & Grade Breakdown -->
+            <h3 style="margin-bottom: 0.75rem;">Harvest Batch Quality Breakdown</h3>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Total Harvest</div>
+                <div id="farm-total-kg" class="metric-val">100 kg</div>
+              </div>
+              <div class="metric-card">
+                <div style="font-size: 0.8rem; color: #34d399;">Grade A (Premium)</div>
+                <div id="farm-kg-a" class="metric-val" style="color: #34d399;">40 kg</div>
+              </div>
+              <div class="metric-card">
+                <div style="font-size: 0.8rem; color: #38bdf8;">Grade B (Standard)</div>
+                <div id="farm-kg-b" class="metric-val" style="color: #38bdf8;">45 kg</div>
+              </div>
+              <div class="metric-card">
+                <div style="font-size: 0.8rem; color: #f87171;">Grade C (Damaged)</div>
+                <div id="farm-kg-c" class="metric-val" style="color: #f87171;">15 kg</div>
+              </div>
+            </div>
+
+            <!-- What-If Scenario Financial Comparison Matrix -->
+            <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem;">What-If Selling Options Comparison (Estimated Financials)</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;" id="farmer-scenarios-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Also add direct Grade-to-Industry Guide Button in Farmer Assistant -->
+      <div style="margin-top: 1rem; text-align: center;">
+        <button class="cta-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 0.85rem 1.5rem; font-size: 1.05rem; font-weight: 700; width: 100%; border-radius: var(--radius-md);" onclick="openIndustryGuideFromFarmer()">
+          🏬 Open Grade-to-Industry Guide: Where Can I Sell This? →
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab: Grade-to-Industry Guide -->
+    <div id="tab-industry-guide" class="tab-content">
+      <!-- Header Card -->
+      <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(16, 185, 129, 0.15)); border: 2px solid #f59e0b;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span style="background: #f59e0b; color: black; font-weight: 800; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 20px; text-transform: uppercase;">🏭 Standalone Feature</span>
+            <h1 style="font-size: 2.2rem; margin-top: 0.4rem;" id="ig-header-title">Grade-to-Industry Guide</h1>
+            <p style="color: var(--text-muted); font-size: 1.05rem;" id="ig-header-sub">AI Grade → Understand Possible Use → Suggest Suitable Industry/Market → Connect Farmer with Buyers</p>
+          </div>
+
+          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <button class="nav-btn" id="ig-lang-en" style="background: #f59e0b; color: black; font-weight: 700;" onclick="switchGuideLanguage('en')">English 🇬🇧</button>
+            <button class="nav-btn" id="ig-lang-ta" style="background: rgba(255,255,255,0.1); color: var(--text-muted); font-weight: 700;" onclick="switchGuideLanguage('ta')">தமிழ் 🇮🇳</button>
+          </div>
+        </div>
+
+        <!-- Crop & Grade Quick Controls Bar -->
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.15); display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="font-weight: 700; font-size: 0.9rem;">Produce:</label>
+            <select id="ig-produce-select" class="select-input" style="margin-bottom: 0; padding: 0.4rem 0.8rem;" onchange="loadIndustryGuide()">
+              <option value="Tomato">🍅 Tomato (தக்காளி)</option>
+              <option value="Banana">🍌 Banana (வாழை)</option>
+              <option value="Apple">🍎 Apple (ஆப்பிள்)</option>
+              <option value="Potato">🥔 Potato (உருளை)</option>
+              <option value="Onion">🧅 Onion (வெங்காயம்)</option>
+              <option value="Mango">🥭 Mango (மாம்பழம்)</option>
+              <option value="Orange">🍊 Orange (ஆரஞ்சு)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="font-weight: 700; font-size: 0.9rem;">AI Grade Input:</label>
+            <select id="ig-grade-select" class="select-input" style="margin-bottom: 0; padding: 0.4rem 0.8rem;" onchange="loadIndustryGuide()">
+              <option value="A">🟢 Grade A (Fresh Market)</option>
+              <option value="B" selected>🟡 Grade B (Processing / Wholesale)</option>
+              <option value="C_COSMETIC">🟠 Grade C (Cosmetic Blemishes)</option>
+              <option value="C_SEVERE">🔴 Grade C (Severe Rot / Deterioration)</option>
+            </select>
+          </div>
+
+          <button class="cta-btn" style="padding: 0.5rem 1.2rem; font-size: 0.9rem;" onclick="loadIndustryGuide()">
+            🔄 Evaluate Destination
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Guide Layout Grid -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+        <!-- 1. Grade Result Box (As Specified in Prompt Section 1) -->
+        <div class="card" style="border-left: 5px solid #38bdf8;">
+          <h3 style="color: #38bdf8; margin-bottom: 0.75rem;">1. AI Grade Result Summary</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: var(--radius-md);">
+            <div>
+              <div style="font-size: 0.9rem; color: var(--text-muted);">Produce: <strong id="ig-res-produce" style="color: white; font-size: 1.1rem;">Tomato</strong></div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.3rem;">
+                <span style="font-size: 0.9rem; color: var(--text-muted);">Grade:</span>
+                <span id="ig-res-grade-badge" class="grade-badge B" style="font-size: 1.2rem; padding: 0.2rem 0.8rem;">B</span>
+              </div>
+            </div>
+            <button class="cta-btn" style="background: linear-gradient(135deg, #10b981, #059669); padding: 0.65rem 1.25rem; font-size: 0.95rem; font-weight: 700;" onclick="scrollToDestinationGuide()">
+              🔍 Find Suitable Selling Options →
+            </button>
+          </div>
+
+          <div style="margin-top: 1rem;">
+            <h4 style="font-size: 0.95rem; margin-bottom: 0.4rem; color: #fbbf24;">Detected condition:</h4>
+            <ul id="ig-res-defects" style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">
+              <li>Minor surface defects</li>
+              <li>Irregular appearance</li>
+              <li>Good colour/maturity</li>
+              <li>No obvious severe spoilage detected</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 2. Grade-to-Destination Guide Card (Prompt Section 2: "Where Can I Sell This?") -->
+        <div class="card" id="card-where-to-sell" style="border: 2px solid var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 id="ig-dest-title">Where Can I Sell This? / எங்கே விற்கலாம்?</h2>
+            <span id="ig-dest-category-badge" style="font-size: 0.8rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 20px; background: rgba(245, 158, 11, 0.2); color: #fbbf24;">PROCESSING / WHOLESALE</span>
+          </div>
+
+          <!-- Prominent Destination Status Card -->
+          <div id="ig-dest-status-box" style="padding: 1.5rem; border-radius: var(--radius-md); background: rgba(245, 158, 11, 0.12); border: 2px solid #f59e0b; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span id="ig-dest-icon" style="font-size: 2.2rem;">🟡</span>
+              <h2 id="ig-dest-heading" style="font-size: 1.8rem; color: white;">Processing / Wholesale</h2>
+            </div>
+
+            <div style="margin-top: 1rem;">
+              <h4 style="font-size: 0.95rem; color: #38bdf8; margin-bottom: 0.3rem;">Potential Destinations:</h4>
+              <ul id="ig-dest-list" style="padding-left: 1.25rem; font-size: 0.95rem; color: var(--text-main); line-height: 1.6;">
+                <li>Tomato sauce manufacturers</li>
+                <li>Tomato puree manufacturers</li>
+                <li>Tomato paste manufacturers</li>
+                <li>Canning/food-processing industries</li>
+                <li>Wholesale buyers</li>
+              </ul>
+            </div>
+
+            <!-- Specific Guidance Message -->
+            <div style="margin-top: 1rem; background: rgba(0,0,0,0.25); padding: 0.85rem 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+              <p id="ig-dest-message" style="font-size: 0.95rem; font-weight: 600; color: #fef08a;">
+                "This produce may have lower fresh-market value but could potentially be suitable for processing or wholesale, depending on the buyer's requirements."
+              </p>
+            </div>
+
+            <div style="margin-top: 1.25rem;">
+              <button id="ig-dest-button" class="cta-btn" style="padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 700; width: 100%;" onclick="scrollToBuyersDirectory()">
+                Find Processing Buyers →
+              </button>
+        <!-- 3. Potential Processing Uses Card (Prompt Section 3) -->
+        <div class="card" id="card-processing-suggestions">
+          <h2 style="margin-bottom: 0.4rem;" id="ig-sugg-title">Potential Processing Uses / சாத்தியமான பதப்படுத்துதல் பயன்பாடுகள்</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;" id="ig-sugg-sub">Configurable industrial product recommendations based on crop visual quality parameters.</p>
+
+          <div id="ig-suggestions-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+            <div class="metric-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">🍅</div>
+              <h4 style="font-size: 1.1rem; color: #ffffff;">Tomato Puree</h4>
+              <div style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.4rem;"><strong>Industry:</strong> Tomato Processing Industry</div>
+              <div style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.2rem;"><strong>Possible Use:</strong> Puree / Ketchup Base</div>
+              <div style="font-size: 0.85rem; color: #fbbf24; margin-top: 0.2rem;"><strong>Suitable Grade:</strong> Grade B / Selected Grade C</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;"><strong>Req:</strong> Subject to buyer inspection & acidity check</div>
+            </div>
+
+            <div class="metric-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">🥫</div>
+              <h4 style="font-size: 1.1rem; color: #ffffff;">Tomato Paste</h4>
+              <div style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.4rem;"><strong>Industry:</strong> Tomato Concentrate Facility</div>
+              <div style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.2rem;"><strong>Possible Use:</strong> Paste / Thick Sauce</div>
+              <div style="font-size: 0.85rem; color: #fbbf24; margin-top: 0.2rem;"><strong>Suitable Grade:</strong> Grade B / Selected Grade C</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;"><strong>Req:</strong> Subject to buyer inspection & Brix level</div>
+            </div>
+
+            <div class="metric-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">🍅</div>
+              <h4 style="font-size: 1.1rem; color: #ffffff;">Tomato Sauce</h4>
+              <div style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.4rem;"><strong>Industry:</strong> Food Processing & Condiments Co.</div>
+              <div style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.2rem;"><strong>Possible Use:</strong> Sauce & Seasonings</div>
+              <div style="font-size: 0.85rem; color: #fbbf24; margin-top: 0.2rem;"><strong>Suitable Grade:</strong> Grade B</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;"><strong>Req:</strong> Subject to buyer visual inspection</div>
+            </div>
+
+            <div class="metric-card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">🥫</div>
+              <h4 style="font-size: 1.1rem; color: #ffffff;">Canning & Pickling</h4>
+              <div style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.4rem;"><strong>Industry:</strong> Vegetable Canning Unit</div>
+              <div style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.2rem;"><strong>Possible Use:</strong> Canned Diced Tomatoes</div>
+              <div style="font-size: 0.85rem; color: #fbbf24; margin-top: 0.2rem;"><strong>Suitable Grade:</strong> Grade A / Grade B</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;"><strong>Req:</strong> Firm skin & texture check</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Batch-Level Guidance Card (Prompt Section 5) -->
+        <div class="card" style="background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+            <div>
+              <h2 id="ig-batch-title">Batch-Level Guidance / உங்கள் அறுவடை தொகுதி பிரிப்பு</h2>
+              <p style="color: var(--text-muted); font-size: 0.9rem;" id="ig-batch-sub">Separate destination routes for mixed quality harvest batches.</p>
+            </div>
+
+            <!-- Quick Batch Quantity Editor -->
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <input type="number" id="ig-batch-a-input" value="55" class="text-input" style="width: 70px; margin-bottom: 0; padding: 0.35rem 0.5rem;" title="Grade A kg" onchange="recalculateBatchGuide()">
+              <span style="color: #34d399; font-weight: 700;">A kg</span>
+              <input type="number" id="ig-batch-b-input" value="30" class="text-input" style="width: 70px; margin-bottom: 0; padding: 0.35rem 0.5rem;" title="Grade B kg" onchange="recalculateBatchGuide()">
+              <span style="color: #fbbf24; font-weight: 700;">B kg</span>
+              <input type="number" id="ig-batch-c-input" value="15" class="text-input" style="width: 70px; margin-bottom: 0; padding: 0.35rem 0.5rem;" title="Grade C kg" onchange="recalculateBatchGuide()">
+              <span style="color: #f87171; font-weight: 700;">C kg</span>
+            </div>
+          </div>
+
+          <!-- Batch Split Destinations List -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;" id="ig-batch-split-container">
+            <div class="metric-card" style="border-left: 4px solid #10b981;">
+              <div style="font-size: 1.2rem;">🟢 <strong>55 kg → Fresh Market</strong></div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">Wholesalers, Retailers & Supermarkets</div>
+            </div>
+            <div class="metric-card" style="border-left: 4px solid #f59e0b;">
+              <div style="font-size: 1.2rem;">🟡 <strong>30 kg → Potential Processing Buyers</strong></div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">Puree, Paste, Sauce & Canning Industries</div>
+            </div>
+            <div class="metric-card" style="border-left: 4px solid #ef4444;">
+              <div style="font-size: 1.2rem;">🔴 <strong>15 kg → Further Assessment / Not Recommended</strong></div>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem;">Processor Inspection / Bio-Recycling</div>
+            </div>
+          </div>
+
+          <!-- Suggested Next Steps -->
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); padding: 1rem; border-radius: var(--radius-md);">
+            <h4 style="color: #38bdf8; margin-bottom: 0.5rem;" id="ig-steps-heading">Suggested Next Steps / பரிந்துரைக்கப்பட்ட அடுத்த கட்டங்கள்:</h4>
+            <ol id="ig-steps-list" style="padding-left: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+              <li>1. Sell Grade A to fresh-market buyers.</li>
+              <li>2. Contact processing buyers for Grade B.</li>
+              <li>3. Inspect Grade C before deciding its destination.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- 5. Find Buyers / Industries Connection Screen (Prompt Section 4) -->
+        <div class="card" id="card-buyers-directory">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 id="ig-buyers-title">Find Buyers / Industries (வாங்குவோர் மற்றும் ஆலைகளைக் கண்டறியவும்)</h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem;">Connect directly with local buyers and industrial procurement agents based on produce grade.</p>
+            </div>
+
+            <!-- Filter Chips -->
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <button class="sample-chip buyer-filter-btn active" style="background: #38bdf8; color: black;" onclick="filterBuyers('ALL', this)">All Buyers</button>
+              <button class="sample-chip buyer-filter-btn" onclick="filterBuyers('FRESH', this)">🟢 Fresh Market</button>
+              <button class="sample-chip buyer-filter-btn" onclick="filterBuyers('PROCESSING', this)">🟡 Processing & Wholesale</button>
+            </div>
+          </div>
+
+          <!-- Demo Buyers Grid -->
+          <div id="ig-buyers-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+            <div class="card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <span style="font-size: 1.5rem; margin-right: 0.4rem;">🏭</span>
+                  <h3 style="display: inline; font-size: 1.15rem; color: #ffffff;">ABC Tomato Processing Co.</h3>
+                  <div style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.25rem;">Tomato Processing Industry</div>
+                </div>
+                <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-weight: 700; font-size: 0.78rem; padding: 0.2rem 0.6rem; border-radius: 12px; white-space: nowrap;">📍 18 km away</span>
+              </div>
+              <div style="margin-top: 0.85rem; font-size: 0.85rem; color: var(--text-muted);">
+                <div>Accepted Crop: <strong style="color: white;">Tomato, Capsicum</strong></div>
+                <div>Accepted Grades: <strong style="color: #fbbf24;">Grade B, Selected Grade C</strong></div>
+                <div>Location: <span style="color: var(--text-main);">Krishnagiri Industrial Estate</span></div>
+              </div>
+              <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button class="cta-btn" style="flex: 1; padding: 0.55rem; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);" onclick="contactBuyer('ABC Tomato Processing', 'procurement@abctomato.com')">✉️ Contact Buyer</button>
+                <button class="nav-btn" style="padding: 0.55rem 0.85rem; font-size: 0.85rem; border: 1px solid #38bdf8; color: #38bdf8;" onclick="callBuyer('+91 98765 43210')">📞 Call Buyer</button>
+              </div>
+            </div>
+
+            <div class="card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <span style="font-size: 1.5rem; margin-right: 0.4rem;">🏪</span>
+                  <h3 style="display: inline; font-size: 1.15rem; color: #ffffff;">Fresh Produce Wholesale Hub</h3>
+                  <div style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.25rem;">Wholesale Market Mandi</div>
+                </div>
+                <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-weight: 700; font-size: 0.78rem; padding: 0.2rem 0.6rem; border-radius: 12px; white-space: nowrap;">📍 8 km away</span>
+              </div>
+              <div style="margin-top: 0.85rem; font-size: 0.85rem; color: var(--text-muted);">
+                <div>Accepted Crop: <strong style="color: white;">Tomato, Apple, Banana, Potato, Onion</strong></div>
+                <div>Accepted Grades: <strong style="color: #fbbf24;">Grade A, Grade B</strong></div>
+                <div>Location: <span style="color: var(--text-main);">Local Wholesale Mandi</span></div>
+              </div>
+              <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button class="cta-btn" style="flex: 1; padding: 0.55rem; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);" onclick="contactBuyer('Fresh Wholesale', 'trade@freshwholesalers.in')">✉️ Contact Buyer</button>
+                <button class="nav-btn" style="padding: 0.55rem 0.85rem; font-size: 0.85rem; border: 1px solid #38bdf8; color: #38bdf8;" onclick="callBuyer('+91 98400 11223')">📞 Call Buyer</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mandatory Demo Label & Clear Notice -->
+          <div style="font-size: 0.8rem; color: var(--text-muted); background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: 8px; border: 1px dashed var(--border-color);">
+            ℹ️ <strong>Demo Data Notice:</strong> The buyer records shown above are clearly labeled demo contacts for operational testing. Final acceptance, commercial pricing, quality verification, and food safety must be confirmed directly with verified buyers.
+          </div>
+        </div>
+
+        <!-- 6. Important Safety & Accuracy Disclaimer Box (Prompt Section 6) -->
+        <div class="card" style="background: rgba(239, 68, 68, 0.08); border: 2px solid rgba(239, 68, 68, 0.4);">
+          <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+            <span style="font-size: 1.6rem;">🛡️</span>
+            <div>
+              <h4 style="color: #f87171; margin-bottom: 0.4rem; font-size: 1.05rem;" id="ig-safety-title">Important Safety & Visual Assessment Rules</h4>
+              <p id="ig-safety-text" style="font-size: 0.92rem; color: #fecaca; line-height: 1.6; font-weight: 500;">
+                "Recommendations are based on visible characteristics from the image. Final acceptance, food safety, pricing, and processing suitability must be confirmed by the buyer/processor."
+              </p>
+              <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.5;">
+                <li>The AI performs visual quality assessment only. It does not measure internal chemical residues or guarantees.</li>
+                <li>Grade B produce may have lower fresh-market value but can provide valuable processing return.</li>
+                <li>Grade C produce requires physical processor inspection before food processing entry.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab 2: Single Inspection -->
+    <div id="tab-inspect" class="tab-content">
+      <div class="inspect-grid">
+        <!-- Input Panel -->
+        <div class="card">
+          <h2 style="margin-bottom: 1rem;">Inspect Produce Image</h2>
+
+          <!-- Automatic AI Vision Produce Detection -->
+          <div
+            style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1.25rem; font-size: 0.86rem; color: #38bdf8; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🤖</span>
+            <span><strong>Automatic Produce Detection Active:</strong> Upload or capture any produce image to
+              automatically detect produce type and classify quality parameters.</span>
+          </div>
+
+          <!-- Dropzone -->
+          <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+            <div id="dropzone-text">
+              <div style="font-size: 2.2rem;">📸</div>
+              <div style="font-weight: 600; margin-top: 0.5rem;">Click to Upload or Capture Image</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Supports JPG, PNG, WEBP</div>
+            </div>
+            <img id="preview-img" alt="Produce Preview">
+          </div>
+          <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <button class="nav-btn" style="background: rgba(255,255,255,0.1); width: 50%;" onclick="toggleCamera()">📷
+              Smartphone Camera</button>
+            <button class="cta-btn" style="width: 50%; padding: 0.75rem;" onclick="runInspection()">Analyze
+              Produce</button>
+          </div>
+
+          <!-- Live Camera Container -->
+          <div class="camera-container" id="camera-box">
+            <video id="webcam" autoplay playsinline></video>
+            <div class="camera-controls">
+              <button class="nav-btn" onclick="captureFrame()"
+                style="background: var(--accent-green); color: black; font-weight: 700;">Capture Frame</button>
+              <button class="nav-btn" onclick="stopCamera()">Close Camera</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="card">
+          <div id="quality-warning-box" class="quality-warning">
+            <h4 style="color: #ef4444; margin-bottom: 0.4rem;">⚠️ Image Quality Warning</h4>
+            <p id="quality-warning-msg">Image quality insufficient for reliable grading. Please retake under better
+              lighting.</p>
+          </div>
+
+          <div id="result-placeholder" style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+            <h3>Inspection Results Will Appear Here</h3>
+            <p style="font-size: 0.9rem;">Upload or capture a produce image to measure colour, size, surface defects,
+              and apparent maturity parameters.</p>
+          </div>
+
+          <div id="result-content" style="display: none;">
+            <!-- Prominent Binary Status Badge -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+              <div>
+                <span id="res-category"
+                  style="font-size: 0.75rem; text-transform: uppercase; background: rgba(255,255,255,0.1); padding: 0.2rem 0.6rem; border-radius: 12px;">Vegetable</span>
+                <h2 id="res-produce-type" style="font-size: 2rem; margin-top: 0.3rem;">Tomato</h2>
+              </div>
+              <div id="res-status-badge" class="status-badge fresh">FRESH</div>
+            </div>
+
+            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1.5rem;">
+              <div id="res-score" class="score-meter" style="color: #34d399;">86</div>
+              <span style="font-size: 1.2rem; color: var(--text-muted);">/ 100 Quality Score</span>
+              <span id="res-grade-sub"
+                style="font-size: 0.85rem; color: var(--text-muted); margin-left: auto;">(Operational Grade A)</span>
+            </div>
+
+            <!-- 4 Core Parameters Progress Bars -->
+            <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem; color: #38bdf8;">Evaluated Produce Quality Parameters:
+            </h4>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                <span>1. Colour Vibrancy</span><span id="factor-colour-val">90%</span>
+              </div>
+              <div class="factor-bar">
+                <div id="factor-colour-bar" class="factor-fill" style="width: 90%;"></div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                <span>2. Produce Size & Scale</span><span id="factor-size-val">85%</span>
+              </div>
+              <div class="factor-bar">
+                <div id="factor-size-bar" class="factor-fill" style="width: 85%;"></div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                <span>3. Surface Condition (Defect-Free)</span><span id="factor-surface-val">82%</span>
+              </div>
+              <div class="factor-bar">
+                <div id="factor-surface-bar" class="factor-fill" style="width: 82%;"></div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                <span>4. Apparent Visual Maturity</span><span id="factor-maturity-val">87%</span>
+              </div>
+              <div class="factor-bar">
+                <div id="factor-maturity-bar" class="factor-fill" style="width: 87%;"></div>
+              </div>
+            </div>
+
+            <!-- Measured Evidence Metrics Box -->
+            <div class="evidence-box">
+              <div style="font-weight: 700; color: #34d399; margin-bottom: 0.4rem;">📐 Measured Evidence Metrics:</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem;">
+                <div>Rot / Decay Ratio: <strong id="ev-rot-ratio" style="color: #f87171;">0.3%</strong></div>
+                <div>Mold / Discoloration: <strong id="ev-discolor-ratio">0.1%</strong></div>
+                <div>Texture Defect Density: <strong id="ev-defect-density">2.1%</strong></div>
+                <div>Frame Size Occupancy: <strong id="ev-size-occupancy">38.2%</strong></div>
+              </div>
+            </div>
+
+            <!-- Evidence Reasoning Box -->
+            <div
+              style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+              <div style="font-weight: 700; color: #fbbf24; margin-bottom: 0.3rem;">🧠 Evidence Reasoning:</div>
+              <div id="res-evidence-reasoning" style="font-size: 0.88rem; color: #d1d5db;">Classified as FRESH based on
+                measured produce evidence: minimal rot ratio (0.3%).</div>
+            </div>
+
+            <h4 style="margin-top: 1rem; margin-bottom: 0.4rem; font-size: 0.95rem;">Detected Visible Characteristics:
+            </h4>
+            <ul id="res-defects-list" style="font-size: 0.88rem; color: var(--text-muted); padding-left: 1.2rem;">
+              <li>Appears fresh with uniform color</li>
+            </ul>
+
+            <div class="recommendation-box">
+              <div style="font-weight: 700; color: #60a5fa; margin-bottom: 0.2rem;">💼 Operational Business Recommendation:</div>
+              <div id="res-recommendation">Suitable for premium retail channel based on visible image characteristics.</div>
+              <div style="margin-top: 0.85rem;">
+                <button class="cta-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 0.65rem 1.2rem; font-size: 0.92rem; font-weight: 700; width: 100%; border-radius: var(--radius-md);" onclick="openIndustryGuideFromInspection()">
+                  🏬 Find Suitable Selling Options (Where Can I Sell This?) →
+                </button>
+              </div>
+            </div>
+
+            <div
+              style="font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem; border-top: 1px stroke var(--border-color); padding-top: 0.5rem;">
+              <div>Model: <strong id="res-model">vegqual_quality_model</strong> | ID: <strong
+                  id="res-id">INS-2026-001</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Batch Inspection -->
+    <div id="tab-batch" class="tab-content">
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h2>Batch Inspection & Lot Aggregation</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Create a produce batch and perform
+          multi-item quality grading.</p>
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <input type="text" id="batch-name-input" class="text-input"
+            placeholder="Batch Name (e.g. Tomato Retail Lot A)" style="flex: 2; margin-bottom: 0;">
+          <select id="batch-produce-input" class="select-input" style="flex: 1; margin-bottom: 0;">
+            <option value="Tomato">Tomato</option>
+            <option value="Potato">Potato</option>
+            <option value="Apple">Apple</option>
+            <option value="Onion">Onion</option>
+            <option value="Capsicum">Capsicum</option>
+          </select>
+          <button class="cta-btn" style="padding: 0.75rem 1.5rem;" onclick="createBatch()">Create Batch</button>
+        </div>
+      </div>
+
+      <div id="batch-results-container" class="card">
+        <h3>Active Batch Summary: <span id="batch-summary-id" style="color: #38bdf8;">TOM-2026-001</span></h3>
+        <div class="metrics-grid" style="margin-top: 1rem;">
+          <div class="metric-card">
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Total Inspected</div>
+            <div id="batch-total-val" class="metric-val">100</div>
+          </div>
+          <div class="metric-card">
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Average Quality</div>
+            <div id="batch-avg-val" class="metric-val" style="color: #34d399;">84.2</div>
+          </div>
+          <div class="metric-card">
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Grade A %</div>
+            <div id="batch-grade-a-val" class="metric-val" style="color: #34d399;">62%</div>
+          </div>
+          <div class="metric-card">
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Grade B %</div>
+            <div id="batch-grade-b-val" class="metric-val" style="color: #fbbf24;">29%</div>
+          </div>
+          <div class="metric-card">
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Grade C %</div>
+            <div id="batch-grade-c-val" class="metric-val" style="color: #f87171;">9%</div>
+          </div>
+        </div>
+
+        <div class="recommendation-box" style="margin-bottom: 1.5rem;">
+          <div style="font-weight: 700; color: #60a5fa;">📋 Batch Operational Sorting Recommendation:</div>
+          <div id="batch-recommendation-text">High-grade batch (62% Grade A). Suitable for direct supermarket & premium
+            retail distribution.</div>
+        </div>
+
+        <h4>Batch Produce Inspections Log:</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Inspection ID</th>
+              <th>Produce</th>
+              <th>Status</th>
+              <th>Grade</th>
+              <th>Score</th>
+              <th>Primary Defect</th>
+            </tr>
+          </thead>
+          <tbody id="batch-inspections-tbody">
+            <tr>
+              <td>INS-2026-901</td>
+              <td>Tomato</td>
+              <td>Fresh</td>
+              <td><span class="grade-badge A">A</span></td>
+              <td>88</td>
+              <td>None</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 4: B2B Dashboard -->
+    <div id="tab-dashboard" class="tab-content">
+      <h2 style="margin-bottom: 1rem;">B2B SaaS Quality Dashboard</h2>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Total Inspections</div>
+          <div id="dash-total-ins" class="metric-val">428</div>
+        </div>
+        <div class="metric-card">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Total Batches</div>
+          <div id="dash-total-batches" class="metric-val">36</div>
+        </div>
+        <div class="metric-card">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Avg Quality Score</div>
+          <div id="dash-avg-quality" class="metric-val" style="color: #34d399;">84.2</div>
+        </div>
+        <div class="metric-card">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Grade A Ratio</div>
+          <div id="dash-grade-a" class="metric-val" style="color: #34d399;">64%</div>
+        </div>
+        <div class="metric-card">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Grade B Ratio</div>
+          <div id="dash-grade-b" class="metric-val" style="color: #fbbf24;">27%</div>
+        </div>
+        <div class="metric-card">
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Grade C Ratio</div>
+          <div id="dash-grade-c" class="metric-val" style="color: #f87171;">9%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 5: History -->
+    <div id="tab-history" class="tab-content">
+      <div class="card">
+        <h2>Produce Inspection History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>ID</th>
+              <th>Produce</th>
+              <th>Status</th>
+              <th>Score</th>
+              <th>Evidence Reasoning</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading inspection records...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 6: Admin -->
+    <div id="tab-admin" class="tab-content">
+      <div class="inspect-grid">
+        <div class="card">
+          <h2>System Status & Supported Produce</h2>
+          <div id="admin-status-box" style="margin-top: 1rem;">
+            <p><strong>Database:</strong> MongoDB (Local High-Performance Engine)</p>
+            <p><strong>Image Reliability Layer:</strong> Active (OpenCV Laplacian Sharpness)</p>
+            <p style="margin-top: 1rem;"><strong>12 Supported Produce Types:</strong></p>
+            <ul style="padding-left: 1.2rem; color: var(--text-muted); font-size: 0.9rem;">
+              <li>VegQual 7 Vegetables: Tomato, Potato, Bitter Gourd, Pointed Gourd, Onion, Capsicum, Brinjal</li>
+              <li>Fruit Dataset 5 Fruits: Apple, Banana, Pomegranate, Orange, Mango</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Manage Produce Types</h2>
+          <div style="margin-top: 1rem;">
+            <input type="text" id="new-produce-name" class="text-input" placeholder="Produce Name (e.g. Cucumber)">
+            <select id="new-produce-cat" class="select-input">
+              <option value="Vegetable">Vegetable</option>
+              <option value="Fruit">Fruit</option>
+            </select>
+            <button class="cta-btn" style="width: 100%; padding: 0.75rem;" onclick="addProduceType()">Add Supported
+              Produce Type</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isDemoMode = false;
+    let selectedImageBase64 = null;
+    let webcamStream = null;
+
+    let farmerSelectedCrop = 'Tomato';
+    let farmerSelectedImageBase64 = null;
+    let currentFarmerLang = 'en';
+    let currentFarmerDecisionData = null;
+
+    function selectFarmerCrop(btn, crop) {
+      document.querySelectorAll('.farmer-crop-btn').forEach(b => {
+        b.style.background = '';
+        b.style.color = '';
+      });
+      btn.style.background = '#10b981';
+      btn.style.color = 'white';
+      farmerSelectedCrop = crop;
+    }
+
+    function handleFarmerFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        farmerSelectedImageBase64 = e.target.result;
+        const img = document.getElementById('farmer-preview-img');
+        img.src = farmerSelectedImageBase64;
+        img.style.display = 'block';
+        document.getElementById('farmer-dropzone-text').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function runFarmerDecision() {
+      const totalKg = parseFloat(document.getElementById('farmer-total-kg').value) || 100;
+      const buyerPrice = parseFloat(document.getElementById('farmer-buyer-price').value) || 20;
+      const harvestDate = document.getElementById('farmer-harvest-date').value || 'Today';
+      const location = document.getElementById('farmer-location').value || 'Mandi';
+
+      const formData = new FormData();
+      formData.append('produce_name', farmerSelectedCrop);
+      formData.append('total_quantity_kg', totalKg);
+      formData.append('buyer_price_per_kg', buyerPrice);
+      formData.append('harvest_date', harvestDate);
+      formData.append('location', location);
+      if (farmerSelectedImageBase64) {
+        formData.append('image_base64', farmerSelectedImageBase64);
+      }
+      const geminiKey = (document.getElementById('gemini-api-key-input')?.value || '').trim();
+      if (geminiKey) formData.append('gemini_api_key', geminiKey);
+
+      try {
+        const res = await fetch('/api/farmer/analyze-batch', { method: 'POST', body: formData });
+        const data = await res.json();
+        currentFarmerDecisionData = data.farmer_decision;
+        displayFarmerResult(data.farmer_decision);
+      } catch(err) {
+        console.error(err);
+        alert('Farmer Assistant Error. Please check backend connection.');
+      }
+    }
+
+    function displayFarmerResult(fd) {
+      document.getElementById('farmer-placeholder').style.display = 'none';
+      document.getElementById('farmer-result-content').style.display = 'block';
+
+      const rec = fd.recommendation;
+      document.getElementById('farmer-action-icon').textContent = rec.icon;
+      
+      const title = currentFarmerLang === 'ta' ? rec.title_ta : rec.title_en;
+      document.getElementById('farmer-action-title').textContent = title;
+
+      const whyList = document.getElementById('farmer-why-list');
+      whyList.innerHTML = '';
+      const reasons = currentFarmerLang === 'ta' ? rec.why_ta : rec.why_en;
+      reasons.forEach(r => {
+        const li = document.createElement('li');
+        li.textContent = r;
+        whyList.appendChild(li);
+      });
+
+      document.getElementById('farmer-disclaimer').textContent = currentFarmerLang === 'ta' ? rec.disclaimer_ta : rec.disclaimer_en;
+
+      // Breakdown
+      const bd = fd.breakdown;
+      document.getElementById('farm-total-kg').textContent = fd.total_quantity_kg + ' kg';
+      document.getElementById('farm-kg-a').textContent = bd.grade_a_kg + ' kg (' + bd.grade_a_pct + '%)';
+      document.getElementById('farm-kg-b').textContent = bd.grade_b_kg + ' kg (' + bd.grade_b_pct + '%)';
+      document.getElementById('farm-kg-c').textContent = bd.grade_c_kg + ' kg (' + bd.grade_c_pct + '%)';
+
+      // Scenarios Matrix
+      const container = document.getElementById('farmer-scenarios-container');
+      container.innerHTML = '';
+      fd.scenarios.forEach(sc => {
+        const isRec = (rec.code === 'SELL_NOW' && sc.id === 'option_1') ||
+                      (rec.code === 'SORT_AND_SELL' && sc.id === 'option_2') ||
+                      (rec.code === 'CONSIDER_ALT_BUYER' && sc.id === 'option_3');
+
+        const card = document.createElement('div');
+        card.className = 'metric-card';
+        card.style.border = isRec ? '2px solid #10b981' : '1px solid var(--border-color)';
+        card.style.background = isRec ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-card)';
+
+        const scTitle = currentFarmerLang === 'ta' ? sc.title_ta : sc.title_en;
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="font-size: 1.05rem; color: #ffffff;">${scTitle} ${isRec ? '⭐ (Recommended)' : ''}</h4>
+            <div style="font-size: 1.25rem; font-weight: 800; color: ${isRec ? '#34d399' : '#38bdf8'};">Est. Net: ₹${sc.net_estimated_value.toLocaleString()}</div>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.4rem;">
+            Gross Revenue: ₹${sc.gross_revenue.toLocaleString()} | Sorting Cost: ₹${sc.sorting_cost} | Transport: ₹${sc.transport_cost}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchFarmerLanguage(lang) {
+      currentFarmerLang = lang;
+      document.getElementById('lang-btn-en').style.background = lang === 'en' ? 'var(--accent-green)' : 'rgba(255,255,255,0.1)';
+      document.getElementById('lang-btn-en').style.color = lang === 'en' ? 'white' : 'var(--text-muted)';
+      document.getElementById('lang-btn-ta').style.background = lang === 'ta' ? 'var(--accent-green)' : 'rgba(255,255,255,0.1)';
+      document.getElementById('lang-btn-ta').style.color = lang === 'ta' ? 'white' : 'var(--text-muted)';
+
+      if (lang === 'ta') {
+        document.getElementById('farmer-hero-title').textContent = '"என் விளைச்சலை இப்போது என்ன செய்வது?"';
+        document.getElementById('farmer-hero-sub').textContent = 'அறுவடை தகவல்கள் & புகைப்படத்தை பதிவேற்றி விற்பனை வாய்ப்புகளை ஒப்பிட்டு சரியான வழிகாட்டுதலைப் பெறுங்கள்.';
+      } else {
+        document.getElementById('farmer-hero-title').textContent = '"What Should I Do With My Harvested Batch Now?"';
+        document.getElementById('farmer-hero-sub').textContent = 'Enter your harvest batch details & visual image to evaluate selling options and get practical next-step guidance.';
+      }
+
+      if (currentFarmerDecisionData) {
+        displayFarmerResult(currentFarmerDecisionData);
+      }
+    }
+
+    function readAloudFarmerDecision() {
+      if (!currentFarmerDecisionData) {
+        alert('Please analyze a harvest batch first to read aloud recommendations.');
+        return;
+      }
+      const rec = currentFarmerDecisionData.recommendation;
+      const textToRead = currentFarmerLang === 'ta' ? rec.voice_ta : rec.voice_en;
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+        utterance.lang = currentFarmerLang === 'ta' ? 'ta-IN' : 'en-US';
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert(textToRead);
+      }
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+      const target = document.getElementById('tab-' + tabId);
+      const btn = document.getElementById('btn-' + tabId);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    function toggleDemoMode() {
+      isDemoMode = !isDemoMode;
+      const btn = document.getElementById('toggle-mode-btn');
+      if (isDemoMode) {
+        btn.textContent = 'DEMO MODE 🧪';
+        btn.style.background = '#f59e0b';
+      } else {
+        btn.textContent = 'LIVE AI ⚡';
+        btn.style.background = '#10b981';
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+      const isLight = document.body.classList.contains('light-theme');
+      const btn = document.getElementById('theme-toggle-btn');
+      if (btn) {
+        btn.textContent = isLight ? '☀️ Light Mode' : '🌙 Dark Mode';
+      }
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        selectedImageBase64 = e.target.result;
+        const img = document.getElementById('preview-img');
+        img.src = selectedImageBase64;
+        img.style.display = 'block';
+        document.getElementById('dropzone-text').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadSampleImage(sampleKey) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 300; canvas.height = 300;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = sampleKey.includes('tomato') ? '#ef4444' : sampleKey.includes('potato') ? '#d97706' : '#10b981';
+      ctx.fillRect(0, 0, 300, 300);
+      ctx.fillStyle = '#ffffff'; ctx.font = '24px sans-serif';
+      ctx.fillText(sampleKey.toUpperCase().replace('_', ' '), 40, 160);
+
+      selectedImageBase64 = canvas.toDataURL('image/jpeg');
+      const img = document.getElementById('preview-img');
+      img.src = selectedImageBase64;
+      img.style.display = 'block';
+      document.getElementById('dropzone-text').style.display = 'none';
+
+      if (sampleKey.includes('tomato')) document.getElementById('produce-hint-select').value = 'Tomato';
+      else if (sampleKey.includes('potato')) document.getElementById('produce-hint-select').value = 'Potato';
+      else if (sampleKey.includes('apple')) document.getElementById('produce-hint-select').value = 'Apple';
+      else if (sampleKey.includes('banana')) document.getElementById('produce-hint-select').value = 'Banana';
+    }
+
+    function saveGeminiKey(key) {
+      if (key) localStorage.setItem('gemini_api_key', key.trim());
+      else localStorage.removeItem('gemini_api_key');
+    }
+
+    // Load saved Gemini Key & pre-fill Industry Guide on start
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('gemini_api_key');
+      if (savedKey) {
+        const inputEl = document.getElementById('gemini-api-key-input');
+        if (inputEl) inputEl.value = savedKey;
+      }
+
+      // If user accesses direct route /industry-guide or /guide or #industry-guide
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path.includes('industry-guide') || path.includes('guide') || hash.includes('industry-guide')) {
+        showTab('industry-guide');
+      }
+
+      setTimeout(() => {
+        if (typeof loadIndustryGuide === 'function') {
+          loadIndustryGuide();
+        }
+      }, 200);
+    });
+
+    async function runInspection() {
+      if (!selectedImageBase64) {
+        alert('Please upload, capture, or select a sample produce image first.');
+        return;
+      }
+
+      const produceHintEl = document.getElementById('produce-hint-select');
+      const produceHint = produceHintEl ? produceHintEl.value : '';
+      const geminiKey = (document.getElementById('gemini-api-key-input')?.value || '').trim();
+
+      const formData = new FormData();
+      formData.append('image_base64', selectedImageBase64);
+      formData.append('produce_hint', produceHint);
+      formData.append('demo_mode', isDemoMode);
+      if (geminiKey) {
+        formData.append('gemini_api_key', geminiKey);
+      }
+
+      try {
+        const res = await fetch('/api/inspect', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (!data.success && !data.image_quality_passed) {
+          document.getElementById('quality-warning-box').style.display = 'block';
+          document.getElementById('quality-warning-msg').textContent = data.message;
+          document.getElementById('result-content').style.display = 'none';
+          document.getElementById('result-placeholder').style.display = 'none';
+          return;
+        }
+
+        document.getElementById('quality-warning-box').style.display = 'none';
+        displayResult(data.result);
+      } catch (err) {
+        console.error(err);
+        alert('Inspection failed. Backend API server connection error.');
+      }
+    }
+
+    function displayResult(res) {
+      document.getElementById('result-placeholder').style.display = 'none';
+      document.getElementById('result-content').style.display = 'block';
+
+      document.getElementById('res-category').textContent = res.category;
+      document.getElementById('res-produce-type').textContent = res.produce_type;
+
+      // Prominent FRESH / NOT FRESH Badge
+      const statusBadge = document.getElementById('res-status-badge');
+      const isFresh = res.quality.toLowerCase().includes('fresh') && !res.quality.toLowerCase().includes('not');
+
+      if (isFresh) {
+        statusBadge.textContent = 'FRESH';
+        statusBadge.className = 'status-badge fresh';
+      } else {
+        statusBadge.textContent = 'NOT FRESH';
+        statusBadge.className = 'status-badge not-fresh';
+      }
+
+      document.getElementById('res-score').textContent = res.quality_score;
+      document.getElementById('res-grade-sub').textContent = '(Operational Grade ' + res.grade + ')';
+
+      // 4 Core Parameters Display
+      const vf = res.visible_factors || { colour: 90, size: 85, surface_condition: 82, maturity: 87 };
+      document.getElementById('factor-colour-val').textContent = vf.colour + '%';
+      document.getElementById('factor-colour-bar').style.width = vf.colour + '%';
+
+      document.getElementById('factor-size-val').textContent = vf.size + '%';
+      document.getElementById('factor-size-bar').style.width = vf.size + '%';
+
+      document.getElementById('factor-surface-val').textContent = vf.surface_condition + '%';
+      document.getElementById('factor-surface-bar').style.width = vf.surface_condition + '%';
+
+      document.getElementById('factor-maturity-val').textContent = vf.maturity + '%';
+      document.getElementById('factor-maturity-bar').style.width = vf.maturity + '%';
+
+      // Measured Evidence Metrics
+      const me = res.measured_evidence || { rot_decay_ratio_pct: 0.3, discoloration_ratio_pct: 0.1, lesion_texture_density_pct: 2.1, produce_size_scale_score: 85 };
+      document.getElementById('ev-rot-ratio').textContent = me.rot_decay_ratio_pct + '%';
+      document.getElementById('ev-discolor-ratio').textContent = me.discoloration_ratio_pct + '%';
+      document.getElementById('ev-defect-density').textContent = me.lesion_texture_density_pct + '%';
+      document.getElementById('ev-size-occupancy').textContent = (me.produce_size_scale_score || 85) + '%';
+
+      document.getElementById('res-evidence-reasoning').textContent = res.evidence_reasoning;
+
+      const defectsList = document.getElementById('res-defects-list');
+      defectsList.innerHTML = '';
+      (res.defects || ['Appears fresh']).forEach(d => {
+        const li = document.createElement('li');
+        li.textContent = d;
+        defectsList.appendChild(li);
+      });
+
+      lastInspectionResult = res;
+      document.getElementById('res-recommendation').textContent = res.recommendation;
+      document.getElementById('res-model').textContent = res.model_used;
+      document.getElementById('res-id').textContent = res.inspection_id;
+    }
+
+    /* Grade-to-Industry Guide JavaScript Implementation */
+    let currentGuideLang = 'en';
+    let lastInspectionResult = null;
+    let buyerCategoryFilter = 'ALL';
+
+    function switchGuideLanguage(lang) {
+      currentGuideLang = lang;
+      document.getElementById('ig-lang-en').style.background = lang === 'en' ? '#f59e0b' : 'rgba(255,255,255,0.1)';
+      document.getElementById('ig-lang-en').style.color = lang === 'en' ? 'black' : 'var(--text-muted)';
+      document.getElementById('ig-lang-ta').style.background = lang === 'ta' ? '#f59e0b' : 'rgba(255,255,255,0.1)';
+      document.getElementById('ig-lang-ta').style.color = lang === 'ta' ? 'black' : 'var(--text-muted)';
+
+      if (lang === 'ta') {
+        document.getElementById('ig-header-title').textContent = 'தர-தொழில்துறை வழிகாட்டி (Grade-to-Industry Guide)';
+        document.getElementById('ig-header-sub').textContent = 'AI தரம் → பயன்பாட்டைப் புரிந்து கொள்ளுங்கள் → பொருத்தமான ஆலை/சந்தையைப் பெறுங்கள் → வியாபாரிகளுடன் இணையுங்கள்';
+        document.getElementById('ig-dest-title').textContent = 'எங்கே விற்கலாம்? (Where Can I Sell This?)';
+        document.getElementById('ig-sugg-title').textContent = 'சாத்தியமான பதப்படுத்துதல் பயன்பாடுகள்';
+        document.getElementById('ig-batch-title').textContent = 'உங்கள் அறுவடை தொகுதி பிரிப்பு';
+        document.getElementById('ig-buyers-title').textContent = 'வாங்குவோர் மற்றும் ஆலைகளைக் கண்டறியவும்';
+      } else {
+        document.getElementById('ig-header-title').textContent = 'Grade-to-Industry Guide';
+        document.getElementById('ig-header-sub').textContent = 'AI Grade → Understand Possible Use → Suggest Suitable Industry/Market → Connect Farmer with Buyers';
+        document.getElementById('ig-dest-title').textContent = 'Where Can I Sell This?';
+        document.getElementById('ig-sugg-title').textContent = 'Potential Processing Uses';
+        document.getElementById('ig-batch-title').textContent = 'Batch-Level Guidance';
+        document.getElementById('ig-buyers-title').textContent = 'Find Buyers / Industries';
+      }
+      loadIndustryGuide();
+    }
+
+    async function loadIndustryGuide() {
+      const produceName = document.getElementById('ig-produce-select')?.value || 'Tomato';
+      const rawGradeVal = document.getElementById('ig-grade-select')?.value || 'B';
+
+      let grade = 'B';
+      let defects = [];
+      let measured_evidence = {};
+
+      if (rawGradeVal === 'A') {
+        grade = 'A';
+        defects = ['Visually market ready', 'Uniform colour & firm shape'];
+      } else if (rawGradeVal === 'B') {
+        grade = 'B';
+        defects = ['Minor surface defects', 'Irregular appearance', 'Good colour/maturity', 'No obvious severe spoilage detected'];
+      } else if (rawGradeVal === 'C_COSMETIC') {
+        grade = 'C';
+        defects = ['Minor cosmetic blemishes', 'Irregular shape', 'Skin scratches', 'No severe decay detected'];
+      } else if (rawGradeVal === 'C_SEVERE') {
+        grade = 'C';
+        defects = ['Severe visible rot', 'Fungal decay & mould', 'Deep tissue breakdown'];
+        measured_evidence = { rot_decay_ratio_pct: 12.5 };
+      }
+
+      const gradeA_kg = parseFloat(document.getElementById('ig-batch-a-input')?.value) || 55;
+      const gradeB_kg = parseFloat(document.getElementById('ig-batch-b-input')?.value) || 30;
+      const gradeC_kg = parseFloat(document.getElementById('ig-batch-c-input')?.value) || 15;
+
+      try {
+        const res = await fetch('/api/industry-guide/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            produce_name: produceName,
+            grade: grade,
+            quality_score: grade === 'A' ? 88 : grade === 'B' ? 68 : rawGradeVal === 'C_COSMETIC' ? 48 : 22,
+            defects: defects,
+            measured_evidence: measured_evidence,
+            grade_a_kg: gradeA_kg,
+            grade_b_kg: gradeB_kg,
+            grade_c_kg: gradeC_kg
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          renderIndustryGuideData(data, produceName, rawGradeVal, defects);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderIndustryGuideData(data, produceName, rawGradeVal, defects) {
+      const dest = data.destination_guide;
+      const isTa = currentGuideLang === 'ta';
+
+      // 1. Grade Result Summary
+      document.getElementById('ig-res-produce').textContent = produceName;
+      const badge = document.getElementById('ig-res-grade-badge');
+      badge.textContent = dest.grade;
+      badge.className = 'grade-badge ' + dest.grade;
+
+      const defectsUl = document.getElementById('ig-res-defects');
+      defectsUl.innerHTML = '';
+      defects.forEach(d => {
+        const li = document.createElement('li');
+        li.textContent = d;
+        defectsUl.appendChild(li);
+      });
+
+      // 2. Where Can I Sell This? Card
+      document.getElementById('ig-dest-icon').textContent = dest.icon;
+      document.getElementById('ig-dest-heading').textContent = isTa ? dest.title_ta : dest.title_en;
+      document.getElementById('ig-dest-category-badge').textContent = dest.destination_category;
+
+      const destList = document.getElementById('ig-dest-list');
+      destList.innerHTML = '';
+      const listItems = isTa ? dest.destinations_ta : dest.destinations_en;
+      listItems.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        destList.appendChild(li);
+      });
+
+      document.getElementById('ig-dest-message').textContent = '"' + (isTa ? dest.message_ta : dest.message_en) + '"';
+      
+      const destBtn = document.getElementById('ig-dest-button');
+      destBtn.textContent = (isTa ? dest.button_label_ta : dest.button_label_en) + ' →';
+
+      // Status Box Styling based on grade / severity
+      const statusBox = document.getElementById('ig-dest-status-box');
+      if (dest.destination_category === 'FRESH_MARKET') {
+        statusBox.style.background = 'rgba(16, 185, 129, 0.12)';
+        statusBox.style.border = '2px solid #10b981';
+      } else if (dest.destination_category === 'PROCESSING_WHOLESALE') {
+        statusBox.style.background = 'rgba(245, 158, 11, 0.12)';
+        statusBox.style.border = '2px solid #f59e0b';
+      } else if (dest.destination_category === 'FURTHER_ASSESSMENT_REQUIRED') {
+        statusBox.style.background = 'rgba(249, 115, 22, 0.12)';
+        statusBox.style.border = '2px solid #f97316';
+      } else {
+        statusBox.style.background = 'rgba(239, 68, 68, 0.12)';
+        statusBox.style.border = '2px solid #ef4444';
+      }
+
+      // 3. Potential Processing Uses
+      const suggGrid = document.getElementById('ig-suggestions-grid');
+      suggGrid.innerHTML = '';
+      (dest.processing_suggestions || []).forEach(s => {
+        const itemTitle = isTa ? (s.title_ta || s.title) : s.title;
+        const indTitle = isTa ? (s.industry_ta || s.industry) : s.industry;
+        const useTitle = isTa ? (s.possible_use_ta || s.possible_use) : s.possible_use;
+        const reqTitle = isTa ? (s.requirement_ta || s.requirement) : s.requirement;
+
+        const card = document.createElement('div');
+        card.className = 'metric-card';
+        card.style.background = 'rgba(255,255,255,0.03)';
+        card.style.border = '1px solid var(--border-color)';
+
+        card.innerHTML = `
+          <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">${s.icon}</div>
+          <h4 style="font-size: 1.1rem; color: #ffffff;">${itemTitle}</h4>
+          <div style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.4rem;"><strong>Industry:</strong> ${indTitle}</div>
+          <div style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.2rem;"><strong>Possible Use:</strong> ${useTitle}</div>
+          <div style="font-size: 0.85rem; color: #fbbf24; margin-top: 0.2rem;"><strong>Suitable Grade:</strong> ${s.suitable_grade}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;"><strong>Req:</strong> ${reqTitle}</div>
+        `;
+        suggGrid.appendChild(card);
+      });
+
+      // 4. Batch Guidance
+      if (data.batch_guidance) {
+        const bg = data.batch_guidance;
+        const splitContainer = document.getElementById('ig-batch-split-container');
+        splitContainer.innerHTML = '';
+        bg.split_destinations.forEach(sd => {
+          const card = document.createElement('div');
+          card.className = 'metric-card';
+          card.style.borderLeft = '4px solid ' + (sd.grade === 'Grade A' ? '#10b981' : sd.grade === 'Grade B' ? '#f59e0b' : '#ef4444');
+          card.innerHTML = `
+            <div style="font-size: 1.15rem; font-weight: 700;">${sd.icon} ${isTa ? sd.destination_ta : sd.destination_en}</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.35rem;">${sd.channel}</div>
+          `;
+          splitContainer.appendChild(card);
+        });
+
+        const stepsList = document.getElementById('ig-steps-list');
+        stepsList.innerHTML = '';
+        const steps = isTa ? bg.suggested_next_steps_ta : bg.suggested_next_steps_en;
+        steps.forEach(st => {
+          const li = document.createElement('li');
+          li.textContent = st;
+          stepsList.appendChild(li);
+        });
+      }
+
+      // 5. Buyer Records
+      renderBuyerRecords(data.buyer_records || []);
+
+      // 6. Safety Disclaimer
+      document.getElementById('ig-safety-text').textContent = '"' + (isTa ? dest.safety_disclaimer_ta : dest.safety_disclaimer_en) + '"';
+    }
+
+    function renderBuyerRecords(buyers) {
+      const grid = document.getElementById('ig-buyers-grid');
+      grid.innerHTML = '';
+      if (!buyers || buyers.length === 0) {
+        grid.innerHTML = '<div style="color: var(--text-muted); padding: 2rem; text-align: center;">No local buyer records available for this crop & grade.</div>';
+        return;
+      }
+
+      buyers.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.background = 'rgba(255,255,255,0.03)';
+        card.style.border = '1px solid var(--border-color)';
+
+        const isTa = currentGuideLang === 'ta';
+        const typeText = isTa ? b.type_ta || b.type : b.type;
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-size: 1.5rem; margin-right: 0.4rem;">${b.icon}</span>
+              <h3 style="display: inline; font-size: 1.15rem; color: #ffffff;">${b.name}</h3>
+              <div style="font-size: 0.85rem; color: #38bdf8; margin-top: 0.25rem;">${typeText}</div>
+            </div>
+            <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-weight: 700; font-size: 0.78rem; padding: 0.2rem 0.6rem; border-radius: 12px; white-space: nowrap;">📍 ${b.distance_km} km away</span>
+          </div>
+
+          <div style="margin-top: 0.85rem; font-size: 0.85rem; color: var(--text-muted);">
+            <div>Accepted Crop: <strong style="color: white;">${b.accepted_produce.join(', ')}</strong></div>
+            <div>Accepted Grades: <strong style="color: #fbbf24;">${b.accepted_grades.join(', ')}</strong></div>
+            <div>Location: <span style="color: var(--text-main);">${b.location}</span></div>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <button class="cta-btn" style="flex: 1; padding: 0.55rem; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);" onclick="contactBuyer('${b.name}', '${b.email}')">
+              ✉️ Contact Buyer
+            </button>
+            <button class="nav-btn" style="padding: 0.55rem 0.85rem; font-size: 0.85rem; border: 1px solid #38bdf8; color: #38bdf8;" onclick="callBuyer('${b.phone}')">
+              📞 Call Buyer
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterBuyers(category, btn) {
+      document.querySelectorAll('.buyer-filter-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = '';
+        b.style.color = '';
+      });
+      btn.classList.add('active');
+      btn.style.background = '#38bdf8';
+      btn.style.color = 'black';
+      buyerCategoryFilter = category;
+
+      const produceName = document.getElementById('ig-produce-select')?.value || 'Tomato';
+      fetch(`/api/industry-guide/buyers?produce_name=${produceName}&category=${category}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) renderBuyerRecords(data.buyers);
+        });
+    }
+
+    function recalculateBatchGuide() {
+      loadIndustryGuide();
+    }
+
+    function openIndustryGuideFromInspection() {
+      showTab('industry-guide');
+      if (lastInspectionResult) {
+        const pSel = document.getElementById('ig-produce-select');
+        const gSel = document.getElementById('ig-grade-select');
+        if (pSel) pSel.value = lastInspectionResult.produce_type || 'Tomato';
+        if (gSel) {
+          if (lastInspectionResult.grade === 'A') gSel.value = 'A';
+          else if (lastInspectionResult.grade === 'B') gSel.value = 'B';
+          else gSel.value = (lastInspectionResult.defects || []).some(d => d.toLowerCase().includes('rot')) ? 'C_SEVERE' : 'C_COSMETIC';
+        }
+      }
+      loadIndustryGuide();
+    }
+
+    function openIndustryGuideFromFarmer() {
+      showTab('industry-guide');
+      const pSel = document.getElementById('ig-produce-select');
+      const gSel = document.getElementById('ig-grade-select');
+      if (pSel && farmerSelectedCrop) pSel.value = farmerSelectedCrop;
+
+      if (currentFarmerDecisionData) {
+        if (gSel) {
+          const g = currentFarmerDecisionData.quality_grade;
+          gSel.value = g === 'A' ? 'A' : g === 'B' ? 'B' : 'C_COSMETIC';
+        }
+        if (currentFarmerDecisionData.breakdown) {
+          const bd = currentFarmerDecisionData.breakdown;
+          const aIn = document.getElementById('ig-batch-a-input');
+          const bIn = document.getElementById('ig-batch-b-input');
+          const cIn = document.getElementById('ig-batch-c-input');
+          if (aIn) aIn.value = bd.grade_a_kg;
+          if (bIn) bIn.value = bd.grade_b_kg;
+          if (cIn) cIn.value = bd.grade_c_kg;
+        }
+      }
+      loadIndustryGuide();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollToDestinationGuide() {
+      document.getElementById('card-where-to-sell')?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function scrollToBuyersDirectory() {
+      document.getElementById('card-buyers-directory')?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function contactBuyer(name, email) {
+      alert(`Contacting ${name} (${email}). Demo procurement request dispatched.`);
+    }
+
+    function callBuyer(phone) {
+      window.location.href = `tel:${phone}`;
+    }
+
+    async function toggleCamera() {
+      const box = document.getElementById('camera-box');
+      if (box.style.display === 'block') {
+        stopCamera();
+        return;
+      }
+      try {
+        webcamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        document.getElementById('webcam').srcObject = webcamStream;
+        box.style.display = 'block';
+      } catch (err) {
+        alert('Camera access denied or unavailable: ' + err.message);
+      }
+    }
+
+    function stopCamera() {
+      if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+      }
+      document.getElementById('camera-box').style.display = 'none';
+    }
+
+    function captureFrame() {
+      const video = document.getElementById('webcam');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      selectedImageBase64 = canvas.toDataURL('image/jpeg');
+
+      const img = document.getElementById('preview-img');
+      img.src = selectedImageBase64;
+      img.style.display = 'block';
+      document.getElementById('dropzone-text').style.display = 'none';
+      stopCamera();
+    }
+
+    async function createBatch() {
+      const name = document.getElementById('batch-name-input').value || 'New Produce Batch';
+      const produce = document.getElementById('batch-produce-input').value;
+      const res = await fetch('/api/batches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batch_name: name, produce_type: produce, category: 'Vegetable' })
+      });
+      const data = await res.json();
+      alert('Batch Created: ' + data.batch.batch_id);
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/dashboard');
+        const data = await res.json();
+        const m = data.metrics;
+        document.getElementById('dash-total-ins').textContent = m.total_inspections;
+        document.getElementById('dash-total-batches').textContent = m.total_batches;
+        document.getElementById('dash-avg-quality').textContent = m.average_quality;
+        document.getElementById('dash-grade-a').textContent = m.grade_a_pct + '%';
+        document.getElementById('dash-grade-b').textContent = m.grade_b_pct + '%';
+        document.getElementById('dash-grade-c').textContent = m.grade_c_pct + '%';
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/inspections');
+        const data = await res.json();
+        const tbody = document.getElementById('history-tbody');
+        tbody.innerHTML = '';
+        if (data.inspections.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No inspections recorded yet.</td></tr>';
+          return;
+        }
+        data.inspections.forEach(ins => {
+          const isFresh = ins.quality.toLowerCase().includes('fresh') && !ins.quality.toLowerCase().includes('not');
+          const badgeClass = isFresh ? 'fresh' : 'not-fresh';
+          const label = isFresh ? 'FRESH' : 'NOT FRESH';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${ins.timestamp.substring(0, 16).replace('T', ' ')}</td>
+            <td>${ins.inspection_id}</td>
+            <td>${ins.produce_type}</td>
+            <td><span class="status-badge ${badgeClass}" style="font-size:0.75rem; padding: 0.2rem 0.6rem;">${label}</span></td>
+            <td>${ins.quality_score}</td>
+            <td style="font-size: 0.8rem;">${ins.evidence_reasoning || ins.recommendation}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadAdmin() {
+      try {
+        const res = await fetch('/api/admin/stats');
+        const data = await res.json();
+      } catch (e) { console.error(e); }
+    }
+
+    async function addProduceType() {
+      const name = document.getElementById('new-produce-name').value;
+      const category = document.getElementById('new-produce-cat').value;
+      if (!name) return;
+      await fetch('/api/produce-types', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, category })
+      });
+      alert('Produce Type ' + name + ' added successfully.');
+    }
+  </script>
+</body>
+
+</html>
